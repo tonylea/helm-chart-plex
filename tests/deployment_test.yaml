@@ -1,0 +1,197 @@
+suite: Deployment
+release:
+  name: plex
+templates:
+  - templates/deployment.yaml
+tests:
+  - it: runs one replica of the chart's appVersion, stopping the old pod first
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: plexinc/pms-docker:1.43.5.11079-b3b13e506
+
+  - it: names the pod's host after the release, and gives Plex 2 minutes to stop
+    asserts:
+      - equal:
+          path: spec.template.spec.hostname
+          value: plex
+      - equal:
+          path: spec.template.spec.terminationGracePeriodSeconds
+          value: 120
+
+  - it: passes only the timezone when no advertised addresses are given
+    set:
+      timezone: Europe/London
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env
+          value:
+            - name: TZ
+              value: Europe/London
+
+  - it: joins the advertised addresses into ADVERTISE_IP
+    set:
+      advertiseUrls:
+        - https://plex.example.com:443
+        - http://192.0.2.10:32400
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[1]
+          value:
+            name: ADVERTISE_IP
+            value: https://plex.example.com:443,http://192.0.2.10:32400
+
+  - it: passes the claim token from the Secret and key it's given
+    set:
+      claimToken:
+        existingSecret: plex-claim
+        key: claim
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].env[1]
+          value:
+            name: PLEX_CLAIM
+            valueFrom:
+              secretKeyRef:
+                name: plex-claim
+                key: claim
+
+  - it: probes /identity, giving start-up 5 minutes
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].startupProbe
+          value:
+            httpGet:
+              path: /identity
+              port: http
+            periodSeconds: 10
+            failureThreshold: 30
+      - equal:
+          path: spec.template.spec.containers[0].livenessProbe
+          value:
+            httpGet:
+              path: /identity
+              port: http
+            periodSeconds: 60
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /identity
+
+  - it: requests CPU and memory, with no limits
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value:
+            requests:
+              cpu: 250m
+              memory: 256Mi
+
+  - it: mounts the config claim at /config, and an empty directory at /transcode
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: config
+              mountPath: /config
+            - name: transcode
+              mountPath: /transcode
+      - equal:
+          path: spec.template.spec.volumes
+          value:
+            - name: config
+              persistentVolumeClaim:
+                claimName: plex-config
+            - name: transcode
+              emptyDir: {}
+
+  - it: mounts the transcode volume it's given
+    set:
+      transcode.volume:
+        persistentVolumeClaim:
+          claimName: plex-transcode
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[1]
+          value:
+            name: transcode
+            persistentVolumeClaim:
+              claimName: plex-transcode
+
+  - it: mounts the config claim it's named
+    set:
+      persistence.config.claimName: plex-database
+    asserts:
+      - equal:
+          path: spec.template.spec.volumes[0].persistentVolumeClaim.claimName
+          value: plex-database
+
+  - it: mounts each media folder's volume at its path, read-only unless readOnly is false
+    set:
+      media:
+        - name: movies
+          mountPath: /data/movies
+          volume:
+            hostPath:
+              path: /srv/movies
+              type: Directory
+        - name: music
+          mountPath: /data/music
+          readOnly: false
+          volume:
+            persistentVolumeClaim:
+              claimName: music
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts
+          value:
+            - name: config
+              mountPath: /config
+            - name: transcode
+              mountPath: /transcode
+            - name: media-movies
+              mountPath: /data/movies
+              readOnly: true
+            - name: media-music
+              mountPath: /data/music
+              readOnly: false
+      - equal:
+          path: spec.template.spec.volumes
+          value:
+            - name: config
+              persistentVolumeClaim:
+                claimName: plex-config
+            - name: transcode
+              emptyDir: {}
+            - name: media-movies
+              hostPath:
+                path: /srv/movies
+                type: Directory
+            - name: media-music
+              persistentVolumeClaim:
+                claimName: music
+
+  - it: sets affinity only when given
+    asserts:
+      - notExists:
+          path: spec.template.spec.affinity
+
+  - it: passes affinity through
+    set:
+      affinity:
+        nodeAffinity:
+          requiredDuringSchedulingIgnoredDuringExecution:
+            nodeSelectorTerms:
+              - matchExpressions:
+                  - key: example.com/zone
+                    operator: In
+                    values: ["a"]
+    asserts:
+      - equal:
+          path: spec.template.spec.affinity.nodeAffinity.requiredDuringSchedulingIgnoredDuringExecution.nodeSelectorTerms[0].matchExpressions[0].key
+          value: example.com/zone
