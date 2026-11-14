@@ -1,0 +1,25 @@
+{
+  "name": "helm-chart-plex",
+  "version": "1.0.0",
+  "description": "Deploys Plex Media Server, which streams a personal library of films, TV and music",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tonylea/helm-chart-plex.git"
+  },
+  "license": "MIT",
+  "scripts": {
+    "prepare": "husky",
+    "release": "commit-and-tag-version"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "21.2.4",
+    "@commitlint/config-conventional": "21.2.4",
+    "@secretlint/secretlint-rule-preset-recommend": "13.1.0",
+    "commit-and-tag-version": "13.3.0",
+    "cspell": "10.4.1",
+    "husky": "9.1.7",
+    "markdownlint-cli2": "0.24.0",
+    "secretlint": "13.1.0"
+  }
+}

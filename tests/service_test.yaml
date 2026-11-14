@@ -1,0 +1,40 @@
+suite: Service
+release:
+  name: plex
+templates:
+  - templates/service.yaml
+tests:
+  - it: serves Plex's port 32400 inside the cluster only
+    asserts:
+      - equal:
+          path: spec.type
+          value: ClusterIP
+      - equal:
+          path: spec.ports
+          value:
+            - name: http
+              port: 32400
+              targetPort: http
+      - notExists:
+          path: metadata.annotations
+      - notExists:
+          path: spec.externalTrafficPolicy
+
+  - it: passes the type, annotations and traffic policy it's given
+    set:
+      service:
+        type: LoadBalancer
+        annotations:
+          example.com/address: 192.0.2.10
+        externalTrafficPolicy: Local
+    asserts:
+      - equal:
+          path: spec.type
+          value: LoadBalancer
+      - equal:
+          path: metadata.annotations
+          value:
+            example.com/address: 192.0.2.10
+      - equal:
+          path: spec.externalTrafficPolicy
+          value: Local
