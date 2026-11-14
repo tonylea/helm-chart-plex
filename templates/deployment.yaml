@@ -1,0 +1,88 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ .Release.Name }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "plex.labels" . | nindent 4 }}
+spec:
+  # Plex's database is SQLite, and the claim is ReadWriteOnce, so the old pod stops before the new one starts.
+  replicas: 1
+  strategy:
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "plex.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "plex.labels" . | nindent 8 }}
+    spec:
+      # Plex names a new server after its hostname, which would otherwise be the pod's random name.
+      hostname: {{ .Release.Name }}
+      # Plex's own chart gives it 2 minutes to close its database.
+      terminationGracePeriodSeconds: 120
+      containers:
+        - name: plex
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
+          env:
+            - name: TZ
+              value: {{ .Values.timezone | quote }}
+            {{- with .Values.advertiseUrls }}
+            - name: ADVERTISE_IP
+              value: {{ join "," . | quote }}
+            {{- end }}
+            {{- with .Values.claimToken }}
+            {{- if .existingSecret }}
+            - name: PLEX_CLAIM
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .existingSecret }}
+                  key: {{ .key }}
+            {{- end }}
+            {{- end }}
+          ports:
+            - name: http
+              containerPort: 32400
+          # Start-up chowns the whole config folder before Plex listens, so it gets 5 minutes.
+          startupProbe:
+            httpGet:
+              path: /identity
+              port: http
+            periodSeconds: 10
+            failureThreshold: 30
+          livenessProbe:
+            httpGet:
+              path: /identity
+              port: http
+            periodSeconds: 60
+          readinessProbe:
+            httpGet:
+              path: /identity
+              port: http
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+            - name: transcode
+              mountPath: /transcode
+            {{- range .Values.media }}
+            - name: {{ printf "media-%s" .name }}
+              mountPath: {{ .mountPath }}
+              readOnly: {{ ternary .readOnly true (hasKey . "readOnly") }}
+            {{- end }}
+      {{- with .Values.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      volumes:
+        - name: config
+          persistentVolumeClaim:
+            claimName: {{ include "plex.configClaimName" . }}
+        - name: transcode
+          {{- toYaml .Values.transcode.volume | nindent 10 }}
+        {{- range .Values.media }}
+        - name: {{ printf "media-%s" .name }}
+          {{- toYaml .volume | nindent 10 }}
+        {{- end }}

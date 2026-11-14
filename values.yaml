@@ -1,0 +1,58 @@
+image:
+  repository: plexinc/pms-docker
+  # Empty uses the chart's appVersion.
+  tag: ""
+
+# A tz database name, for example Europe/London.
+timezone: Etc/UTC
+
+# Addresses clients can reach the server on besides its own, for example https://plex.example.com:443.
+# Plex's image applies them only on a first start, when it creates Preferences.xml.
+advertiseUrls: []
+
+# An existing Secret holding a claim token from https://plex.tv/claim, which links a new server to a Plex account on its first start.
+# Empty leaves the server unclaimed.
+claimToken:
+  existingSecret: ""
+  key: token
+
+resources:
+  requests:
+    cpu: 250m
+    memory: 256Mi
+
+# Plex's database, metadata and thumbnails, on a ReadWriteOnce claim.
+# Empty claimName names it <release>-config; an empty storageClassName uses the cluster's default class.
+persistence:
+  config:
+    claimName: ""
+    size: 10Gi
+    storageClassName: ""
+
+# Folders holding the media, each a volume mounted at mountPath, read-only unless readOnly is false, for example:
+#   - name: movies
+#     mountPath: /data/movies
+#     volume:
+#       hostPath:
+#         path: /srv/movies
+#         type: Directory
+media: []
+
+# The volume Plex writes to while transcoding, mounted at /transcode.
+transcode:
+  volume:
+    emptyDir: {}
+
+affinity: {}
+
+# Plex's port, 32400. LoadBalancer gives Plex an address of its own that clients on the network can reach.
+service:
+  type: ClusterIP
+  annotations: {}
+  externalTrafficPolicy: ""
+
+# A Gateway API HTTPRoute to the web UI.
+httpRoute:
+  enabled: false
+  parentRefs: []
+  hostnames: []
