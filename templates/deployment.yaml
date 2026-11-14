@@ -81,7 +81,7 @@ spec:
           persistentVolumeClaim:
             claimName: {{ include "plex.configClaimName" . }}
         - name: transcode
-          {{- toYaml .Values.transcode.volume | nindent 10 }}
+          {{- toYaml (.Values.transcode.volume | default (dict "emptyDir" (dict))) | nindent 10 }}
         {{- range .Values.media }}
         - name: {{ printf "media-%s" .name }}
           {{- toYaml .volume | nindent 10 }}

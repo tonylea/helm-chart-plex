@@ -38,10 +38,9 @@ persistence:
 #         type: Directory
 media: []
 
-# The volume Plex writes to while transcoding, mounted at /transcode.
+# The volume Plex writes to while transcoding, mounted at /transcode. Empty uses an emptyDir.
 transcode:
-  volume:
-    emptyDir: {}
+  volume: {}
 
 affinity: {}
 

@@ -34,7 +34,7 @@ A StatefulSet's `volumeClaimTemplates` can't change once it exists, so that clai
 | `persistence.config.size` | `10Gi` |
 | `persistence.config.storageClassName` | the cluster's default class |
 | `media` | none |
-| `transcode.volume` | `emptyDir: {}` |
+| `transcode.volume` | an `emptyDir` |
 | `affinity` | none |
 | `service.type` | `ClusterIP` |
 | `service.annotations` | none |
