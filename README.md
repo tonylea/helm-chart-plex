@@ -29,7 +29,7 @@ A StatefulSet's `volumeClaimTemplates` can't change once it exists, so that clai
 | `advertiseUrls` | none |
 | `claimToken.existingSecret` | none |
 | `claimToken.key` | `token` |
-| `resources` | requests `cpu: 250m`, `memory: 256Mi`; no limits |
+| `resources` | none |
 | `persistence.config.claimName` | `<release>-config` |
 | `persistence.config.size` | `10Gi` |
 | `persistence.config.storageClassName` | the cluster's default class |
@@ -52,6 +52,8 @@ A claim token expires 4 minutes after it's issued, so the Secret has to be creat
 
 Each entry in `media` has a `name`, a `mountPath`, a `volume`, any Kubernetes volume source, and an optional `readOnly`.
 Plex only reads media unless "Allow media deletion" is on in its settings, so a folder is mounted read-only unless its `readOnly` is `false`.
+
+Requests of `cpu: 300m` and `memory: 320Mi` are a suggested starting point.
 
 Set `service.type` to `LoadBalancer` to give Plex an address of its own on the network, which clients on it connect to directly.
 

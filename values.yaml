@@ -16,10 +16,7 @@ claimToken:
   existingSecret: ""
   key: token
 
-resources:
-  requests:
-    cpu: 250m
-    memory: 256Mi
+resources: {}
 
 # Plex's database, metadata and thumbnails, on a ReadWriteOnce claim.
 # Empty claimName names it <release>-config; an empty storageClassName uses the cluster's default class.

@@ -83,14 +83,23 @@ tests:
           path: spec.template.spec.containers[0].readinessProbe.httpGet.path
           value: /identity
 
-  - it: requests CPU and memory, with no limits
+  - it: leaves resources to whoever deploys it
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].resources
+          value: {}
+
+  - it: uses the resources when set
+    set:
+      resources.requests.cpu: 300m
+      resources.requests.memory: 320Mi
     asserts:
       - equal:
           path: spec.template.spec.containers[0].resources
           value:
             requests:
-              cpu: 250m
-              memory: 256Mi
+              cpu: 300m
+              memory: 320Mi
 
   - it: mounts the config claim at /config, and an empty directory at /transcode
     asserts:
