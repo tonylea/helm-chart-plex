@@ -12,6 +12,8 @@ The chart runs one replica:
 - A Service on Plex's port, 32400, and an optional Gateway API `HTTPRoute` to it.
 - A start-up, liveness and readiness probe on Plex's `/identity`.
   Start-up gets 5 minutes, since the image chowns the whole config folder before Plex listens.
+- A busybox sidecar, `plex-logs`, that tails `Plex Media Server.log` to stdout, since Plex logs only to files.
+  It's a native sidecar, so it starts before Plex and stops after it.
 
 The pod's hostname is the release name, which Plex names a new server after.
 Plex exposes no Prometheus metrics, so the chart has no `ServiceMonitor` or dashboards.
@@ -30,6 +32,10 @@ A StatefulSet's `volumeClaimTemplates` can't change once it exists, so that clai
 | `claimToken.existingSecret` | none |
 | `claimToken.key` | `token` |
 | `resources` | none |
+| `logs.enabled` | `true` |
+| `logs.image.repository` | `busybox` |
+| `logs.image.tag` | `1.38.0` |
+| `logs.resources` | none |
 | `persistence.config.claimName` | `<release>-config` |
 | `persistence.config.size` | `10Gi` |
 | `persistence.config.storageClassName` | the cluster's default class |
@@ -59,6 +65,7 @@ Set `service.type` to `LoadBalancer` to give Plex an address of its own on the n
 
 ## Requirements
 
+- Kubernetes 1.29 or later, for the native sidecar.
 - A storage class for the config claim, the cluster's default unless named.
 - The claim token's Secret, when `claimToken.existingSecret` is set.
 - The Gateway API's `HTTPRoute` CRD, when `httpRoute.enabled` is set.

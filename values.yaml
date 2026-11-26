@@ -18,6 +18,14 @@ claimToken:
 
 resources: {}
 
+# A sidecar that tails Plex Media Server.log to stdout, since Plex logs only to files.
+logs:
+  enabled: true
+  image:
+    repository: busybox
+    tag: "1.38.0"
+  resources: {}
+
 # Plex's database, metadata and thumbnails, on a ReadWriteOnce claim.
 # Empty claimName names it <release>-config; an empty storageClassName uses the cluster's default class.
 persistence:
