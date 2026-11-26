@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.0.1](https://github.com/tonylea/helm-chart-plex/compare/v1.0.0...v1.0.1) (2026-11-26)
+
+### Bug Fixes
+
+* leave resource requests to whoever deploys the chart ([208ce3f](https://github.com/tonylea/helm-chart-plex/commit/208ce3f11219553ef9829bc4b45d75277aa19e99))
+
+### Documentation
+
+* cut the README's resources suggestion to the figures ([cd9902e](https://github.com/tonylea/helm-chart-plex/commit/cd9902e19d6f73d5c9c4b19de1616c53b87dfa05))
+* drop the README line saying resources are left to the deployer ([84bc161](https://github.com/tonylea/helm-chart-plex/commit/84bc16126d6382e3ee673b3617d9bc57067626b1))
+
 ## 1.0.0 (2026-11-14)
 
 ### Features
