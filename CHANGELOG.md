@@ -2,6 +2,17 @@
 
 All notable changes to this project will be documented in this file. See [commit-and-tag-version](https://github.com/absolute-version/commit-and-tag-version) for commit guidelines.
 
+## [1.1.0](https://github.com/tonylea/helm-chart-plex/compare/v1.0.1...v1.1.0) (2026-11-26)
+
+### Features
+
+* tail Plex's log file to stdout from a busybox sidecar ([990dea7](https://github.com/tonylea/helm-chart-plex/commit/990dea7d641b4682d0ec1d281b64a668253a2303))
+* turn the log sidecar off by default ([ff754bf](https://github.com/tonylea/helm-chart-plex/commit/ff754bf21d81936e62b74f0626c5af01bd8d85f9))
+
+### Documentation
+
+* drop the README's Kubernetes version requirement ([d27d759](https://github.com/tonylea/helm-chart-plex/commit/d27d759d1a1cc18de3afdadc72436d3b3b0600f2))
+
 ## [1.0.1](https://github.com/tonylea/helm-chart-plex/compare/v1.0.0...v1.0.1) (2026-11-26)
 
 ### Bug Fixes
