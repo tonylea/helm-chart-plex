@@ -65,7 +65,6 @@ Set `service.type` to `LoadBalancer` to give Plex an address of its own on the n
 
 ## Requirements
 
-- Kubernetes 1.29 or later, for the native sidecar.
 - A storage class for the config claim, the cluster's default unless named.
 - The claim token's Secret, when `claimToken.existingSecret` is set.
 - The Gateway API's `HTTPRoute` CRD, when `httpRoute.enabled` is set.
