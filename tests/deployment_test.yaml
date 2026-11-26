@@ -101,6 +101,34 @@ tests:
               cpu: 300m
               memory: 320Mi
 
+  - it: runs no log sidecar by default
+    asserts:
+      - notExists:
+          path: spec.template.spec.initContainers
+
+  - it: tails Plex's log file from a native sidecar, with /config read-only, when logs is enabled
+    set:
+      logs.enabled: true
+    asserts:
+      - equal:
+          path: spec.template.spec.initContainers[0].name
+          value: plex-logs
+      - equal:
+          path: spec.template.spec.initContainers[0].image
+          value: busybox:1.38.0
+      - equal:
+          path: spec.template.spec.initContainers[0].restartPolicy
+          value: Always
+      - matchRegex:
+          path: spec.template.spec.initContainers[0].command[2]
+          pattern: tail -F "/config/Library/Application Support/Plex Media Server/Logs/Plex Media Server.log"
+      - equal:
+          path: spec.template.spec.initContainers[0].volumeMounts
+          value:
+            - name: config
+              mountPath: /config
+              readOnly: true
+
   - it: mounts the config claim at /config, and an empty directory at /transcode
     asserts:
       - equal:

@@ -22,6 +22,24 @@ spec:
       hostname: {{ .Release.Name }}
       # Plex's own chart gives it 2 minutes to close its database.
       terminationGracePeriodSeconds: 120
+      {{- if .Values.logs.enabled }}
+      # A native sidecar: it starts before Plex and stops after it, so start-up and shutdown lines aren't lost.
+      initContainers:
+        - name: plex-logs
+          image: "{{ .Values.logs.image.repository }}:{{ .Values.logs.image.tag }}"
+          restartPolicy: Always
+          # tail as PID 1 would ignore SIGTERM and hold the pod for the full grace period.
+          command:
+            - sh
+            - -c
+            - trap 'exit 0' TERM; tail -F "/config/Library/Application Support/Plex Media Server/Logs/Plex Media Server.log" & wait
+          resources:
+            {{- toYaml .Values.logs.resources | nindent 12 }}
+          volumeMounts:
+            - name: config
+              mountPath: /config
+              readOnly: true
+      {{- end }}
       containers:
         - name: plex
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
