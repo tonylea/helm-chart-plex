@@ -20,7 +20,7 @@ resources: {}
 
 # A sidecar that tails Plex Media Server.log to stdout, since Plex logs only to files.
 logs:
-  enabled: true
+  enabled: false
   image:
     repository: busybox
     tag: "1.38.0"
